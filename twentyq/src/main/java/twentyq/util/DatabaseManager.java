@@ -46,7 +46,7 @@ final public class DatabaseManager
     public Question findFirstQuestion()
     {
         return manager.createQuery("SELECT question FROM Question question WHERE parentQuestion IS NULL", Question.class)
-        .getSingleResult();
+            .getSingleResult();
     }
 
     /**
@@ -57,10 +57,15 @@ final public class DatabaseManager
      */
     public Question findNextQuestion(Question currentQuestion, boolean response)
     {
-        return manager.createQuery("SELECT question FROM Question question WHERE parentQuestion = :parentQuestion AND parentQuestionAnswer = :parentQuestionAnswer", Question.class)
-        .setParameter("parentQuestion", currentQuestion)
-        .setParameter("parentQuestionAnswer", response)
-        .getSingleResult();
+        try {
+            return manager.createQuery("SELECT question FROM Question question WHERE parentQuestion = :parentQuestion AND parentQuestionAnswer = :parentQuestionAnswer", Question.class)
+                .setParameter("parentQuestion", currentQuestion)
+                .setParameter("parentQuestionAnswer", response)
+                .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
     }
 
     /**
@@ -71,10 +76,15 @@ final public class DatabaseManager
      */
     public Solution findSolutionByQuestion(Question currentQuestion, boolean response)
     {
-        return manager.createQuery("SELECT solution FROM Solution solution WHERE parentQuestion = :parentQuestion AND parentQuestionAnswer = :parentQuestionAnswer", Solution.class)
-        .setParameter("parentQuestion", currentQuestion)
-        .setParameter("parentQuestionAnswer", response)
-        .getSingleResult();
+        try {
+            return manager.createQuery("SELECT solution FROM Solution solution WHERE parentQuestion = :parentQuestion AND parentQuestionAnswer = :parentQuestionAnswer", Solution.class)
+                .setParameter("parentQuestion", currentQuestion)
+                .setParameter("parentQuestionAnswer", response)
+                .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
     }
 
     public void save(Question question)

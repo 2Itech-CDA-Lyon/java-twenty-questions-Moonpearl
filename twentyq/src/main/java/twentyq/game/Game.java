@@ -1,5 +1,7 @@
 package twentyq.game;
 
+import java.util.Scanner;
+
 import twentyq.entity.Question;
 import twentyq.util.DatabaseManager;
 
@@ -52,6 +54,24 @@ public final class Game
     {
         // Affiche le texte de la question actuelle
         System.out.println(currentQuestion.getText());
+        Scanner scanner = new Scanner(System.in);
+        
+        // Demande à l'utilisateur de répondre à la question
+        boolean valid = false;
+        do {
+            // Attend une saisie utilisateur
+            String userInput = scanner.nextLine().toUpperCase();
+
+            // Valide la saisie utilisateur
+            if (userInput.equals("O") || userInput.equals("N")) {
+                valid = true;
+            } else {
+                System.out.println("Vous devez répondre par (O)ui ou par (N)on!");
+            }
+        // Recommence tant que la saisie n'est pas valide
+        } while(!valid);
+        
+        scanner.close();
         terminate();
     }
 }

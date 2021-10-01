@@ -20,6 +20,11 @@ public final class Console
         return instance;
     }
 
+    public String askInput()
+    {
+        return scanner.nextLine();
+    }
+
     public boolean askYesOrNo()
     {
         boolean valid = false;

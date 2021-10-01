@@ -3,9 +3,7 @@ package twentyq.game;
 import java.util.Scanner;
 
 import javax.persistence.NoResultException;
-import javax.xml.crypto.Data;
 
-import javassist.bytecode.stackmap.BasicBlock.Catch;
 import twentyq.entity.Question;
 import twentyq.entity.Solution;
 import twentyq.util.Console;
@@ -24,7 +22,6 @@ public final class Game
      * La question actuelle
      */
     private Question currentQuestion;
-    private Scanner scanner;
 
     /**
      * Crée une nouvelle partie
@@ -35,7 +32,6 @@ public final class Game
         isRunning = true;
         // Récupère la première question de l'arbre
         currentQuestion = DatabaseManager.getInstance().findFirstQuestion();
-        scanner = new Scanner(System.in);
     }
 
     /**
@@ -74,6 +70,45 @@ public final class Game
                 System.out.println("J'ai trouvé! :)");
             } else {
                 System.out.println("Je donne ma langue au chat! :(");
+
+                // Demande à l'utilisateur quelle était sa solution
+                Solution userSolution = new Solution();
+                System.out.println("À quel animal pensiez-vous?");
+                userSolution.setName(
+                    Console.getInstance().askInput()
+                );
+
+                // Demande à l'utilisateur de créer une nouvelle question permettant de discriminer entre les deux solutions
+                Question userQuestion = new Question();
+                System.out.println(String.format("Quelle question me permettrait de faire la différence entre %s et %s?", currentSolution.getName(), userSolution.getName()));
+                userQuestion.setText(
+                    Console.getInstance().askInput()
+                );
+                // La nouvelle question proposée par l'utilisateur devient la question que l'on atteint lorsque que l'on répond à la dernière question posée par le jeu
+                // par la dernière réponse qui a été donnée
+                userQuestion.setParentQuestion(currentQuestion);
+                userQuestion.setParentQuestionAnswer(response);
+
+                // Demande à l'utilisateur quelle réponse à sa question mêne vers sa solution
+                System.out.println(String.format("Si je vous pose la question: %s, la réponse %s correspond-elle à (O)ui ou (N)on?", userQuestion.getText(), userSolution.getName()));
+                boolean userResponse = Console.getInstance().askYesOrNo();
+                // La nouvelle solution proposée par l'utilisateur devient la solution que l'on atteint lorsque l'on répond à la nouvelle question
+                // par la réponse que l'utilisateur vient de donner
+                userSolution.setParentQuestion(userQuestion);
+                userSolution.setParentQuestionAnswer(userResponse);
+
+                // La solution proposée par le jeu devient la solution que l'on atteint lorsque l'on répond à la nouvelle question
+                // par l'inverse de la réponse que l'utilisateur vient de donner
+                currentSolution.setParentQuestion(userQuestion);
+                currentSolution.setParentQuestionAnswer(!userResponse);
+
+                // Sauvegarde les modifications en base de données
+                DatabaseManager manager = DatabaseManager.getInstance();
+                manager.save(userQuestion);
+                manager.save(userSolution);
+                manager.save(currentSolution);
+
+                System.out.println();
             }
         }
         catch (NoResultException exception) { }

@@ -76,4 +76,26 @@ final public class DatabaseManager
         .setParameter("parentQuestionAnswer", response)
         .getSingleResult();
     }
+
+    public void save(Question question)
+    {
+        manager.getTransaction().begin();
+        if (question.getId() == null) {
+            manager.persist(question);
+        } else {
+            manager.merge(question);
+        }
+        manager.getTransaction().commit();
+    }
+
+    public void save(Solution solution)
+    {
+        manager.getTransaction().begin();
+        if (solution.getId() == null) {
+            manager.persist(solution);
+        } else {
+            manager.merge(solution);
+        }
+        manager.getTransaction().commit();
+    }
 }

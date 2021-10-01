@@ -2,7 +2,13 @@ package twentyq.game;
 
 import java.util.Scanner;
 
+import javax.persistence.NoResultException;
+import javax.xml.crypto.Data;
+
+import javassist.bytecode.stackmap.BasicBlock.Catch;
 import twentyq.entity.Question;
+import twentyq.entity.Solution;
+import twentyq.util.Console;
 import twentyq.util.DatabaseManager;
 
 /**
@@ -18,6 +24,7 @@ public final class Game
      * La question actuelle
      */
     private Question currentQuestion;
+    private Scanner scanner;
 
     /**
      * Crée une nouvelle partie
@@ -28,6 +35,7 @@ public final class Game
         isRunning = true;
         // Récupère la première question de l'arbre
         currentQuestion = DatabaseManager.getInstance().findFirstQuestion();
+        scanner = new Scanner(System.in);
     }
 
     /**
@@ -54,24 +62,27 @@ public final class Game
     {
         // Affiche le texte de la question actuelle
         System.out.println(currentQuestion.getText());
-        Scanner scanner = new Scanner(System.in);
         
-        // Demande à l'utilisateur de répondre à la question
-        boolean valid = false;
-        do {
-            // Attend une saisie utilisateur
-            String userInput = scanner.nextLine().toUpperCase();
+        // Demande à l'utilisateur de répondre à la question par oui ou par non
+        boolean response = Console.getInstance().askYesOrNo();
+        try {
+            // Cherche s'il existe une solution associée au prochain noeud de l'arbre
+            Solution currentSolution = DatabaseManager.getInstance().findSolutionByQuestion(currentQuestion, response);
+            System.out.println(String.format("Je pense que votre animal est: %s", currentSolution.getName()));
 
-            // Valide la saisie utilisateur
-            if (userInput.equals("O") || userInput.equals("N")) {
-                valid = true;
+            if (Console.getInstance().askYesOrNo()) {
+                System.out.println("J'ai trouvé! :)");
             } else {
-                System.out.println("Vous devez répondre par (O)ui ou par (N)on!");
+                System.out.println("Je donne ma langue au chat! :(");
             }
-        // Recommence tant que la saisie n'est pas valide
-        } while(!valid);
-        
-        scanner.close();
-        terminate();
+        }
+        catch (NoResultException exception) { }
+        // Récupère la question suivante dans l'arbre en se basant sur la réponse de l'utilisateur
+        try {
+            currentQuestion = DatabaseManager.getInstance().findNextQuestion(currentQuestion, response);
+        }
+        catch (NoResultException exception) {
+            terminate();
+        }
     }
 }

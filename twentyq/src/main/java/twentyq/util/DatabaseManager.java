@@ -45,7 +45,35 @@ final public class DatabaseManager
      */
     public Question findFirstQuestion()
     {
-        return manager.createQuery("SELECT question FROM Question question WHERE question.parentQuestion IS NULL", Question.class)
+        return manager.createQuery("SELECT question FROM Question question WHERE parentQuestion IS NULL", Question.class)
+        .getSingleResult();
+    }
+
+    /**
+     * Récupère la question suivante dans l'arbre
+     * @param currentQuestion La question actuelle
+     * @param response La réponse à la question actuelle
+     * @return
+     */
+    public Question findNextQuestion(Question currentQuestion, boolean response)
+    {
+        return manager.createQuery("SELECT question FROM Question question WHERE parentQuestion = :parentQuestion AND parentQuestionAnswer = :parentQuestionAnswer", Question.class)
+        .setParameter("parentQuestion", currentQuestion)
+        .setParameter("parentQuestionAnswer", response)
+        .getSingleResult();
+    }
+
+    /**
+     * Récupère la solution associée à une question
+     * @param currentQuestion La question concernée
+     * @param response La réponse à la question concernée
+     * @return
+     */
+    public Solution findSolutionByQuestion(Question currentQuestion, boolean response)
+    {
+        return manager.createQuery("SELECT solution FROM Solution solution WHERE parentQuestion = :parentQuestion AND parentQuestionAnswer = :parentQuestionAnswer", Solution.class)
+        .setParameter("parentQuestion", currentQuestion)
+        .setParameter("parentQuestionAnswer", response)
         .getSingleResult();
     }
 }
